@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>CubeAway - 3DPuzzle (Lưu Tiến Độ & Theme Sáng/Tối • 100 Màn)</title>
+  <style>
+    /* =========================================================================
+       100% PURE EMBEDDED CSS — HOẠT ĐỘNG OFFLINE TRÊN MỌI THIẾT BỊ DI ĐỘNG
+       Hỗ trợ chuyển đổi mượt mà giữa Theme Tối (Dark) & Theme Sáng (Light)
+       ========================================================================= */
+    :root[data-theme="dark"] {
+      --bg-radial: radial-gradient(circle at 50% 44%, #1e293b 0%, #090d16 74%);
+      --glass-bg: rgba(15, 23, 42, 0.86);
+      --glass-border: rgba(148, 163, 184, 0.2);
+      --panel-bg: #0f172a;
+      --item-bg: #1e293b;
+      --item-hover: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #d97706;
+      --accent-soft: #fbbf24;
+      --emerald: #10b981;
+      --sky: #38bdf8;
+      --rose: #f43f5e;
+      --shadow-card: 0 8px 26px rgba(0, 0, 0, 0.45);
+    }
+
+    :root[data-theme="light"] {
+      --bg-radial: radial-gradient(circle at 50% 44%, #f8fafc 0%, #cbd5e1 78%);
+      --glass-bg: rgba(255, 255, 255, 0.88);
+      --glass-border: rgba(100, 116, 139, 0.24);
+      --panel-bg: #ffffff;
+      --item-bg: #f1f5f9;
+      --item-hover: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --accent: #b45309;
+      --accent-soft: #d97706;
+      --emerald: #059669;
+      --sky: #0284c7;
+      --rose: #e11d48;
+      --shadow-card: 0 8px 24px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-radial);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      position: fixed;
+      inset: 0;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    #gameCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+      z-index: 1;
+    }
+
+    .ui-shell {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: env(safe-area-inset-top, 8px) 10px env(safe-area-inset-bottom, 10px) 10px;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    .interactive {
+      pointer-events: auto;
+    }
+
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-card);
+    }
+
+    /* ================= HEADER TRÊN CÙNG GỌN GÀNG ================= */
+    .top-hud {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .top-bar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .brand-stage-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 14px;
+      color: var(--text-main);
+      border: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      cursor: pointer;
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+      box-shadow: var(--shadow-card);
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #475569, #1e293b);
+      color: #f8fafc;
+      font-weight: 900;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .stage-meta {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .stage-meta-top {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stage-meta-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 1px;
+    }
+
+    .save-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--emerald);
+      flex-shrink: 0;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .pill-btn {
+      border: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      color: var(--text-main);
+      padding: 7px 9px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      box-shadow: var(--shadow-card);
+    }
+
+    .pill-btn:active,
+    .brand-stage-btn:active,
+    .dock-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* THANH TIẾN ĐỘ MÀN HIỆN TẠI */
+    .inprogress-bar-wrap {
+      width: 100%;
+      height: 5px;
+      background: var(--glass-bg);
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid var(--glass-border);
+    }
+
+    #stageProgressFill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--sky), var(--emerald));
+      transition: width 0.25s ease;
+    }
+
+    /* 4 CHỈ SỐ GỌN TRÊN 1 HÀNG */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      width: 100%;
+    }
+
+    .stat-chip {
+      padding: 5px 6px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+
+    .stat-value {
+      font-size: 13px;
+      font-weight: 800;
+      margin-top: 1px;
+      line-height: 1.2;
+      color: var(--text-main);
+    }
+
+    /* TOAST NỔI GIỮA MÀN HÌNH */
+    .toast-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+      padding: 0 8px;
+    }
+
+    #toastBanner {
+      background: var(--panel-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 999px;
+      box-shadow: var(--shadow-card);
+      text-align: center;
+      max-width: 95%;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    #toastBanner.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ================= BOTTOM DOCK GỌN GÀNG ================= */
+    .bottom-hud {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .legend-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .legend-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .dot-yellow {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: #d97706;
+      display: inline-block;
+    }
+
+    .dock-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 5px;
+      padding: 6px;
+      border-radius: 16px;
+    }
+
+    .dock-btn {
+      background: var(--item-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 6px 2px;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      position: relative;
+      min-height: 48px;
+    }
+
+    .dock-btn .dock-icon {
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .dock-btn .dock-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-main);
+      text-align: center;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .dock-badge {
+      position: absolute;
+      top: -4px;
+      right: 3px;
+      font-size: 7.5px;
+      font-weight: 900;
+      padding: 1px 4px;
+      border-radius: 99px;
+      background: var(--emerald);
+      color: #ffffff;
+    }
+
+    .dock-btn.active-mode {
+      border-color: var(--sky);
+      background: rgba(56, 189, 248, 0.16);
+    }
+
+    .dock-btn.danger-active {
+      border-color: var(--rose);
+      background: rgba(244, 63, 94, 0.22);
+    }
+
+    /* ================= HỆ THỐNG MODAL ================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(2, 6, 23, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      pointer-events: auto;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 460px;
+      max-height: 86vh;
+      background: var(--panel-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 22px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .close-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--glass-border);
+      background: var(--item-bg);
+      color: var(--text-main);
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .chapter-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+
+    .chapter-tab {
+      padding: 7px 4px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      background: var(--item-bg);
+      color: var(--text-muted);
+      font-size: 10.5px;
+      font-weight: 800;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .chapter-tab.active {
+      background: var(--text-main);
+      color: var(--panel-bg);
+      border-color: var(--text-main);
+    }
+
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      overflow-y: auto;
+      max-height: 48vh;
+      padding: 2px;
+    }
+
+    .level-item {
+      background: var(--item-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 8px;
+      text-align: left;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .level-item.current {
+      border: 2px solid var(--accent-soft);
+    }
+
+    .level-item.cleared {
+      border-color: var(--emerald);
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .sum-box {
+      background: var(--item-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 11px;
+      padding: 7px;
+      text-align: center;
+    }
+
+    .sum-num {
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+
+    .sum-lbl {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .primary-cta {
+      width: 100%;
+      padding: 11px;
+      border-radius: 13px;
+      border: none;
+      background: var(--text-main);
+      color: var(--panel-bg);
+      font-weight: 800;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+
+    @keyframes shakeAnim {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      50% {
+        transform: translateX(5px);
+      }
+
+      75% {
+        transform: translateX(-4px);
+      }
+    }
+
+    .shake {
+      animation: shakeAnim 0.28s ease-in-out;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- CANVAS 3D CHÍNH -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- LỚP ĐIỀU KHIỂN GIAO DIỆN MOBILE-FIRST -->
+  <div class="ui-shell">
+    <!-- THANH TRÊN CÙNG -->
+    <div class="top-hud">
+      <div class="top-bar-row interactive">
+        <button class="brand-stage-btn" onclick="openLevelModal()">
+          <div class="brand-icon">➤</div>
+          <div class="stage-meta">
+            <div class="stage-meta-top">
+              <span id="stageTitleTxt">Màn 1 / 100 • Khối 3×3×3</span>
+              <span>▾</span>
+            </div>
+            <div class="stage-meta-sub">
+              <span class="save-dot"></span>
+              <span id="saveStateLabel">Đã lưu tiến trình tự động</span>
+            </div>
+          </div>
+        </button>
+
+        <div class="top-actions">
+          <button class="pill-btn" onclick="cycleColorStyle()" id="paletteBtn" title="Đổi tông màu mũi tên">
+            🎨 <span id="paletteTxt">Tối Giản</span>
+          </button>
+          <button class="pill-btn" onclick="toggleTheme()" id="themeBtn" title="Chuyển chế độ Sáng / Tối">
+            🌙 <span id="themeTxt">Tối</span>
+          </button>
+          <button class="pill-btn" onclick="openLevelModal()">
+            📋 <span id="clearedBadge">0/100</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- THANH TIẾN ĐỘ PHẦN TRĂM MÀN ĐANG CHƠI -->
+      <div class="inprogress-bar-wrap">
+        <div id="stageProgressFill"></div>
+      </div>
+
+      <!-- 4 Ô THÔNG SỐ -->
+      <div class="stats-strip interactive">
+        <div class="glass-panel stat-chip">
+          <span class="stat-label">Đang giải</span>
+          <span id="remainVal" class="stat-value">0/0</span>
+        </div>
+        <div class="glass-panel stat-chip">
+          <span class="stat-label">Rút được ngay</span>
+          <span id="freeVal" class="stat-value" style="color: var(--emerald);">0</span>
+        </div>
+        <div id="livesBox" class="glass-panel stat-chip">
+          <span class="stat-label">Chính xác</span>
+          <span id="livesVal" class="stat-value" style="font-size: 12px;">❤️❤️❤️</span>
+        </div>
+        <div class="glass-panel stat-chip">
+          <span class="stat-label">Cạnh Vàng</span>
+          <span id="wrapVal" class="stat-value" style="color: var(--accent-soft);">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST THÔNG BÁO -->
+    <div class="toast-wrap">
+      <div id="toastBanner">Thông báo</div>
+    </div>
+
+    <!-- THANH CÔNG CỤ DƯỚI -->
+    <div class="bottom-hud">
+      <div class="legend-row">
+        <span class="legend-pill"><span class="dot-yellow"></span> Cạnh Vàng: Uốn 90° sang mặt bên</span>
+        <span class="legend-pill">⟷ 2 Đầu: Đảo chiều mỗi bước</span>
+        <span class="legend-pill">🔑 Mở chốt 🔒</span>
+      </div>
+
+      <div class="glass-panel dock-grid interactive">
+        <button id="btnGhost" class="dock-btn" onclick="toggleTransparentMode()">
+          <span class="dock-icon">👁️</span>
+          <span class="dock-label">Xuyên Thấu</span>
+        </button>
+
+        <button id="btnDots" class="dock-btn active-mode" onclick="toggleGridDots()">
+          <span class="dock-icon">✨</span>
+          <span id="txtDots" class="dock-label">Tia: BẬT</span>
+        </button>
+
+        <button class="dock-btn" onclick="useHint()">
+          <span class="dock-badge">FREE</span>
+          <span class="dock-icon">💡</span>
+          <span class="dock-label">Gợi Ý</span>
+        </button>
+
+        <button id="btnForce" class="dock-btn" onclick="toggleRemoveTool()">
+          <span class="dock-badge">FREE</span>
+          <span class="dock-icon">⚡</span>
+          <span class="dock-label">Phá Khối</span>
+        </button>
+
+        <button class="dock-btn" onclick="undoMove()">
+          <span class="dock-icon">↩️</span>
+          <span class="dock-label">Hoàn Tác</span>
+        </button>
+
+        <button class="dock-btn" onclick="restartCurrentStageFresh()">
+          <span class="dock-icon">🔄</span>
+          <span class="dock-label">Chơi Lại</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LỊCH SỬ QUA MÀN & DANH SÁCH 100 MÀN -->
+  <div id="levelModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Lịch Sử Qua Màn & 100 Màn Chơi</span>
+        <button class="close-btn" onclick="closeLevelModal()">✕</button>
+      </div>
+
+      <!-- Thống kê tiến trình đã lưu -->
+      <div class="summary-strip">
+        <div class="sum-box">
+          <div id="sumCleared" class="sum-num" style="color: var(--emerald);">0</div>
+          <div class="sum-lbl">Màn Đã Qua</div>
+        </div>
+        <div class="sum-box">
+          <div id="sumCurrent" class="sum-num" style="color: var(--sky);">Màn 1</div>
+          <div class="sum-lbl">Đang Thực Hiện</div>
+        </div>
+        <div class="sum-box">
+          <div id="sumDrafts" class="sum-num" style="color: var(--accent-soft);">0%</div>
+          <div class="sum-lbl">Tiến Độ Màn Này</div>
+        </div>
+      </div>
+
+      <div class="chapter-tabs">
+        <button id="chap-0" class="chapter-tab active" onclick="renderLevelChapter(0)">Màn 1–25</button>
+        <button id="chap-1" class="chapter-tab" onclick="renderLevelChapter(1)">Màn 26–50</button>
+        <button id="chap-2" class="chapter-tab" onclick="renderLevelChapter(2)">Màn 51–75</button>
+        <button id="chap-3" class="chapter-tab" onclick="renderLevelChapter(3)">Màn 76–100</button>
+      </div>
+
+      <div id="levelListContainer" class="levels-grid"></div>
+    </div>
+  </div>
+
+  <!-- MODAL KẾT QUẢ -->
+  <div id="resultModal" class="modal-backdrop">
+    <div class="modal-card" style="text-align: center; align-items: center;">
+      <div id="resEmoji" style="font-size: 44px;">🏆</div>
+      <div id="resTitle" class="modal-title" style="font-size: 18px;">Hoàn Thành!</div>
+      <p id="resDesc" style="font-size: 12.5px; color: var(--text-muted); line-height: 1.5;"></p>
+      <div style="display: flex; gap: 8px; width: 100%; margin-top: 6px;">
+        <button class="pill-btn" style="flex: 1; justify-content: center; padding: 11px;"
+          onclick="restartCurrentStageFresh()">Chơi Lại</button>
+        <button id="btnNextAction" class="primary-cta" style="flex: 1.4;" onclick="nextOrRevive()">Màn Tiếp Theo
+          →</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*************************************************************************
+     * CUBEAWAY 3D - PHIÊN BẢN HOÀN CHỈNH:
+     * 1. Lưu tự động màn đang thực hiện (từng mũi tên đã gỡ, chiều mũi tên 2 đầu,
+     *    số tim, lịch sử hoàn tác) + Lưu lịch sử các màn đã vượt qua vào localStorage.
+     * 2. Bảng màu Tối Giản (Minimalist 2-3 tông màu dịu mắt) & Bắc Âu (Nordic).
+     * 3. Chế độ Sáng (Light) / Tối (Dark) đồng bộ cả UI và khối 3D.
+     *************************************************************************/
+    const STORAGE_KEY = 'cubeaway_full_save_v5';
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const SHAPE_POOL = [
+      [3, 3, 3], [4, 3, 3], [4, 4, 3], [4, 4, 4], [5, 4, 2], [3, 5, 3],
+      [5, 3, 4], [5, 4, 4], [5, 5, 3], [5, 5, 4], [5, 5, 5], [6, 4, 2],
+      [6, 4, 3], [6, 5, 3], [4, 6, 4], [6, 5, 4], [6, 6, 3], [6, 6, 4],
+      [6, 5, 5], [6, 6, 5], [6, 6, 6], [7, 5, 4]
+    ];
+
+    const STAGES = Array.from({ length: 100 }, (_, i) => {
+      const id = i + 1;
+      const shape = id === 1 ? [3, 3, 3] : id === 2 ? [4, 4, 4] : SHAPE_POOL[(i * 3 + Math.floor(i / 4)) % SHAPE_POOL.length];
+      const prog = i / 99;
+      return {
+        id,
+        dims: [...shape],
+        wrapRate: Math.min(0.92, 0.48 + prog * 0.44),
+        longRate: Math.min(0.82, 0.38 + prog * 0.42),
+        doubleRate: id < 3 ? 0.12 : Math.min(0.45, 0.15 + prog * 0.30),
+        lockPairs: id < 2 ? 0 : id < 8 ? 1 : id < 25 ? 2 : 3
+      };
+    });
+
+    // 3 chế độ màu sắc bớt lòe loẹt, cực kỳ dịu mắt
+    const COLOR_STYLES = {
+      minimal: {
+        label: 'Tối Giản',
+        palettes: [
+          { top: '#64748b', bottom: '#334155', side: '#1e293b', border: '#cbd5e1' }, // Slate
+          { top: '#0ea5e9', bottom: '#0369a1', side: '#0c4a6e', border: '#bae6fd' }  // Calm Cerulean
+        ]
+      },
+      mono: {
+        label: 'Đơn Sắc',
+        palettes: [
+          { top: '#94a3b8', bottom: '#475569', side: '#1e293b', border: '#e2e8f0' }  // Pure Monochrome
+        ]
+      },
+      nordic: {
+        label: 'Dịu Mắt',
+        palettes: [
+          { top: '#5eead4', bottom: '#0f766e', side: '#134e4a', border: '#ccfbf1' }, // Soft Teal
+          { top: '#93c5fd', bottom: '#1d4ed8', side: '#1e3a8a', border: '#dbeafe' }, // Soft Blue
+          { top: '#cbd5e1', bottom: '#475569', side: '#1e293b', border: '#f1f5f9' }  // Warm Grey
+        ]
+      }
+    };
+    const STYLE_KEYS = ['minimal', 'mono', 'nordic'];
+    let currentColorStyleKey = 'minimal';
+    let currentTheme = 'dark';
+
+    // Dữ liệu tiến trình lưu trữ
+    let clearedStageIds = new Set();
+    let stageClearedAt = {};      // stageId -> timestamp
+    let savedStageDrafts = {};    // stageIdx -> bản lưu chi tiết màn đang giải dở
+    let currentStageIdx = 0;
+
+    let transparentMode = false;
+    let showGridDots = true;
+    let forceRemoveMode = false;
+
+    let boxDims = [3, 3, 3];
+    let faces = [];
+    let edgeWraps = {};
+    let arrows = [];
+    let totalArrowsInitial = 0;
+    let undoStack = [];
+    let lives = 3;
+    let maxLives = 3;
+
+    let hoveredArrowId = null;
+    let hintedArrowId = null;
+    let blockerArrowId = null;
+    let blockerFlashTimer = 0;
+    let pulseTick = 0;
+
+    let activeAnimations = [];
+    let particles = [];
+
+    let camRotX = -0.46;
+    let camRotY = 0.66;
+    let camScale = 1.0;
+
+    function getActivePaletteList() {
+      return COLOR_STYLES[currentColorStyleKey].palettes;
+    }
+
+    function applyPaletteToArrows() {
+      const list = getActivePaletteList();
+      arrows.forEach((arr, idx) => {
+        arr.palette = list[(arr.cells[0].faceId + idx) % list.length];
+      });
+    }
+
+    // LƯU & TẢI TRẠNG THÁI TỪ LOCALSTORAGE
+    function loadSavedData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (Array.isArray(data.clearedStageIds)) {
+          clearedStageIds = new Set(data.clearedStageIds);
+        }
+        if (data.stageClearedAt && typeof data.stageClearedAt === 'object') {
+          stageClearedAt = data.stageClearedAt;
+        }
+        if (data.savedStageDrafts && typeof data.savedStageDrafts === 'object') {
+          savedStageDrafts = data.savedStageDrafts;
+        }
+        if (typeof data.currentStageIdx === 'number' && data.currentStageIdx >= 0 && data.currentStageIdx < STAGES.length) {
+          currentStageIdx = data.currentStageIdx;
+        }
+        if (data.theme === 'light' || data.theme === 'dark') {
+          currentTheme = data.theme;
+        }
+        if (STYLE_KEYS.includes(data.colorStyle)) {
+          currentColorStyleKey = data.colorStyle;
+        }
+      } catch (e) { }
+    }
+
+    function saveAllProgress() {
+      try {
+        // Lưu chi tiết màn đang thực hiện vào savedStageDrafts
+        const anyRemoved = arrows.some(a => a.removed);
+        const allRemoved = arrows.length > 0 && arrows.every(a => a.removed);
+
+        if (arrows.length > 0 && !allRemoved) {
+          savedStageDrafts[currentStageIdx] = {
+            boxDims: [...boxDims],
+            edgeWraps: { ...edgeWraps },
+            totalArrowsInitial,
+            lives,
+            camRotX,
+            camRotY,
+            arrows: arrows.map(a => ({
+              id: a.id,
+              solveOrder: a.solveOrder,
+              cells: a.cells.map(c => ({ ...c })),
+              headDir: a.headDir,
+              isDoubleArrow: a.isDoubleArrow,
+              isKey: a.isKey,
+              lockedByKey: a.lockedByKey,
+              removed: a.removed
+            })),
+            updatedAt: Date.now(),
+            started: anyRemoved
+          };
+        } else if (allRemoved) {
+          delete savedStageDrafts[currentStageIdx];
+        }
+
+        const payload = {
+          clearedStageIds: [...clearedStageIds],
+          stageClearedAt,
+          savedStageDrafts,
+          currentStageIdx,
+          theme: currentTheme,
+          colorStyle: currentColorStyleKey
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } catch (e) { }
+    }
+
+    function applyThemeUI() {
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      document.getElementById('themeBtn').innerHTML = currentTheme === 'dark'
+        ? '🌙 <span id="themeTxt">Tối</span>'
+        : '☀️ <span id="themeTxt">Sáng</span>';
+      document.getElementById('paletteTxt').textContent = COLOR_STYLES[currentColorStyleKey].label;
+    }
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyThemeUI();
+      saveAllProgress();
+      showToast(currentTheme === 'light' ? '☀️ Đã chuyển sang giao diện Sáng' : '🌙 Đã chuyển sang giao diện Tối');
+    }
+
+    function cycleColorStyle() {
+      const nextIdx = (STYLE_KEYS.indexOf(currentColorStyleKey) + 1) % STYLE_KEYS.length;
+      currentColorStyleKey = STYLE_KEYS[nextIdx];
+      applyPaletteToArrows();
+      applyThemeUI();
+      saveAllProgress();
+      showToast(`🎨 Bảng màu mũi tên: ${COLOR_STYLES[currentColorStyleKey].label}`);
+    }
+
+    // Âm thanh nhẹ nhàng
+    let audioCtx = null;
+    function playSound(type) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'slide') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(420, now);
+          osc.frequency.exponentialRampToValueAtTime(760, now + 0.14);
+          gain.gain.setValueAtTime(0.09, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc.start(now); osc.stop(now + 0.16);
+        } else if (type === 'blocked') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(160, now);
+          osc.frequency.linearRampToValueAtTime(105, now + 0.2);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.21);
+          osc.start(now); osc.stop(now + 0.22);
+        } else if (type === 'win') {
+          [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = 'triangle';
+            o.frequency.value = freq;
+            o.connect(g); g.connect(audioCtx.destination);
+            g.gain.setValueAtTime(0.08, now + idx * 0.07);
+            g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.3);
+            o.start(now + idx * 0.07); o.stop(now + idx * 0.07 + 0.31);
+          });
+        }
+      } catch (e) { }
+    }
+
+    /*************************************************************************
+     * TOÁN HỌC BỀ MẶT 6 MẶT & CẠNH VÀNG 90°
+     *************************************************************************/
+    function vecAdd(a, b) { return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }; }
+    function vecSub(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
+    function vecScale(a, s) { return { x: a.x * s, y: a.y * s, z: a.z * s }; }
+    function vecDot(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+
+    function buildFaces(Nx, Ny, Nz) {
+      const hx = Nx / 2, hy = Ny / 2, hz = Nz / 2;
+      return [
+        { id: 0, name: 'Trước', normal: { x: 0, y: 0, z: 1 }, uAxis: { x: 1, y: 0, z: 0 }, vAxis: { x: 0, y: -1, z: 0 }, cols: Nx, rows: Ny, depth: hz },
+        { id: 1, name: 'Sau', normal: { x: 0, y: 0, z: -1 }, uAxis: { x: -1, y: 0, z: 0 }, vAxis: { x: 0, y: -1, z: 0 }, cols: Nx, rows: Ny, depth: hz },
+        { id: 2, name: 'Phải', normal: { x: 1, y: 0, z: 0 }, uAxis: { x: 0, y: 0, z: -1 }, vAxis: { x: 0, y: -1, z: 0 }, cols: Nz, rows: Ny, depth: hx },
+        { id: 3, name: 'Trái', normal: { x: -1, y: 0, z: 0 }, uAxis: { x: 0, y: 0, z: 1 }, vAxis: { x: 0, y: -1, z: 0 }, cols: Nz, rows: Ny, depth: hx },
+        { id: 4, name: 'Trên', normal: { x: 0, y: 1, z: 0 }, uAxis: { x: 1, y: 0, z: 0 }, vAxis: { x: 0, y: 0, z: 1 }, cols: Nx, rows: Nz, depth: hy },
+        { id: 5, name: 'Dưới', normal: { x: 0, y: -1, z: 0 }, uAxis: { x: 1, y: 0, z: 0 }, vAxis: { x: 0, y: 0, z: -1 }, cols: Nx, rows: Nz, depth: hy }
+      ];
+    }
+
+    function cellToWorld(faceId, uFloat, vFloat, lift = 0) {
+      const f = faces[faceId];
+      const localU = (uFloat + 0.5) - f.cols / 2;
+      const localV = (vFloat + 0.5) - f.rows / 2;
+      return {
+        x: f.normal.x * (f.depth + lift) + f.uAxis.x * localU + f.vAxis.x * localV,
+        y: f.normal.y * (f.depth + lift) + f.uAxis.y * localU + f.vAxis.y * localV,
+        z: f.normal.z * (f.depth + lift) + f.uAxis.z * localU + f.vAxis.z * localV
+      };
+    }
+
+    const DIRS = [{ du: 1, dv: 0 }, { du: 0, dv: 1 }, { du: -1, dv: 0 }, { du: 0, dv: -1 }];
+    function oppositeDir(dirIdx) { return (dirIdx + 2) % 4; }
+    function makeEdgeSegmentKey(pt) { return `${Math.round(pt.x * 4)}_${Math.round(pt.y * 4)}_${Math.round(pt.z * 4)}`; }
+
+    function stepOnCubeSurface(faceId, u, v, dirIdx) {
+      const f = faces[faceId];
+      const d = DIRS[dirIdx];
+      const nu = u + d.du, nv = v + d.dv;
+
+      if (nu >= 0 && nu < f.cols && nv >= 0 && nv < f.rows) {
+        return { wrapped: false, faceId, u: nu, v: nv, dirIdx };
+      }
+
+      const moveVec3D = {
+        x: f.uAxis.x * d.du + f.vAxis.x * d.dv,
+        y: f.uAxis.y * d.du + f.vAxis.y * d.dv,
+        z: f.uAxis.z * d.du + f.vAxis.z * d.dv
+      };
+
+      const nextFace = faces.find(nf =>
+        nf.normal.x === moveVec3D.x && nf.normal.y === moveVec3D.y && nf.normal.z === moveVec3D.z
+      );
+
+      const curWorld = cellToWorld(faceId, u, v, 0);
+      const edgeMidWorld = vecAdd(curWorld, vecScale(moveVec3D, 0.5));
+      const newMove3D = vecScale(f.normal, -1);
+      const nextCellCenterWorld = vecAdd(edgeMidWorld, vecScale(newMove3D, 0.5));
+
+      const rel = vecSub(nextCellCenterWorld, vecScale(nextFace.normal, nextFace.depth));
+      const localU = vecDot(rel, nextFace.uAxis);
+      const localV = vecDot(rel, nextFace.vAxis);
+      const nextU = Math.round(localU + nextFace.cols / 2 - 0.5);
+      const nextV = Math.round(localV + nextFace.rows / 2 - 0.5);
+
+      const ndu = Math.round(vecDot(newMove3D, nextFace.uAxis));
+      const ndv = Math.round(vecDot(newMove3D, nextFace.vAxis));
+      const nextDirIdx = DIRS.findIndex(item => item.du === ndu && item.dv === ndv);
+
+      return {
+        wrapped: true,
+        faceId: nextFace.id,
+        u: nextU, v: nextV,
+        dirIdx: nextDirIdx,
+        edgeKey: makeEdgeSegmentKey(edgeMidWorld),
+        facePairKey: [Math.min(faceId, nextFace.id), Math.max(faceId, nextFace.id)].join('-')
+      };
+    }
+
+    function traceArrowEscapePath(arrow, occupiedMap) {
+      const head = arrow.cells[0];
+      let curFace = head.faceId, curU = head.u, curV = head.v, curDir = arrow.headDir;
+      const pathSteps = [];
+      let wrapsUsed = 0;
+      const maxWraps = 3;
+      let maxSteps = 28;
+
+      while (maxSteps-- > 0) {
+        const next = stepOnCubeSurface(curFace, curU, curV, curDir);
+        if (next.wrapped) {
+          if (!edgeWraps[next.edgeKey] || wrapsUsed >= maxWraps) {
+            return { canEscape: true, blockerArrowId: null, pathSteps, wrapsUsed };
+          }
+          wrapsUsed++;
+        }
+        curFace = next.faceId; curU = next.u; curV = next.v; curDir = next.dirIdx;
+        const cellKey = `${curFace}_${curU}_${curV}`;
+        const occId = occupiedMap.get(cellKey);
+        pathSteps.push({ faceId: curFace, u: curU, v: curV, dirIdx: curDir, wrapped: next.wrapped });
+
+        if (occId !== undefined && occId !== arrow.id) {
+          return { canEscape: false, blockerArrowId: occId, pathSteps, wrapsUsed };
+        }
+      }
+      return { canEscape: true, blockerArrowId: null, pathSteps, wrapsUsed };
+    }
+
+    function buildOccupiedMap(activeArrows) {
+      const map = new Map();
+      for (const arr of activeArrows) {
+        if (arr.removed) continue;
+        for (const c of arr.cells) map.set(`${c.faceId}_${c.u}_${c.v}`, arr.id);
+      }
+      return map;
+    }
+
+    function canArrowBeRemovedNow(arrow, occupiedMap) {
+      if (arrow.removed) return { canEscape: false, reason: 'removed', pathSteps: [] };
+      if (arrow.lockedByKey) {
+        const keyArrow = arrows.find(a => !a.removed && a.isKey);
+        if (keyArrow) return { canEscape: false, reason: 'locked', blockerArrowId: keyArrow.id, pathSteps: [] };
+      }
+      return traceArrowEscapePath(arrow, occupiedMap);
+    }
+
+    function getValidOrientationsForBody(bodyItem) {
+      const cells = bodyItem.cells;
+      if (cells.length === 1) return [0, 1, 2, 3].map(d => ({ orderedCells: [{ ...cells[0] }], headDir: d }));
+      return [
+        { orderedCells: [...cells].reverse().map(c => ({ ...c })), headDir: bodyItem.axisDir },
+        { orderedCells: cells.map(c => ({ ...c })), headDir: oppositeDir(bodyItem.axisDir) }
+      ];
+    }
+
+    /*************************************************************************
+     * KHỞI TẠO HOẶC KHÔI PHỤC MÀN CHƠI ĐANG THỰC HIỆN
+     *************************************************************************/
+    function initStage(stageIndex, forceFresh = false) {
+      currentStageIdx = stageIndex;
+      const cfg = STAGES[currentStageIdx];
+
+      // Kiểm tra nếu màn này đã có bản lưu đang chơi dở và người dùng không bấm "Chơi lại từ đầu"
+      const savedDraft = !forceFresh ? savedStageDrafts[currentStageIdx] : null;
+      if (savedDraft && Array.isArray(savedDraft.arrows) && savedDraft.arrows.some(a => !a.removed)) {
+        boxDims = [...savedDraft.boxDims];
+        faces = buildFaces(boxDims[0], boxDims[1], boxDims[2]);
+        edgeWraps = { ...savedDraft.edgeWraps };
+        totalArrowsInitial = savedDraft.totalArrowsInitial || savedDraft.arrows.length;
+        lives = savedDraft.lives || 3;
+        if (typeof savedDraft.camRotX === 'number') camRotX = savedDraft.camRotX;
+        if (typeof savedDraft.camRotY === 'number') camRotY = savedDraft.camRotY;
+
+        arrows = savedDraft.arrows.map(a => ({
+          ...a,
+          cells: a.cells.map(c => ({ ...c }))
+        }));
+        applyPaletteToArrows();
+        undoStack = [];
+        activeAnimations = [];
+        particles = [];
+        hoveredArrowId = null;
+        hintedArrowId = null;
+        blockerArrowId = null;
+
+        updateHUD();
+        saveAllProgress();
+        return;
+      }
+
+      // Sinh màn chơi mới
+      boxDims = [...cfg.dims];
+      faces = buildFaces(boxDims[0], boxDims[1], boxDims[2]);
+      edgeWraps = {};
+      arrows = [];
+      undoStack = [];
+      activeAnimations = [];
+      particles = [];
+      hoveredArrowId = null;
+      hintedArrowId = null;
+      blockerArrowId = null;
+      lives = 3;
+
+      const edgeGroups = {};
+      for (const f of faces) {
+        for (let u = 0; u < f.cols; u++) {
+          for (let v = 0; v < f.rows; v++) {
+            for (let d = 0; d < 4; d++) {
+              const st = stepOnCubeSurface(f.id, u, v, d);
+              if (st.wrapped) {
+                if (!edgeGroups[st.facePairKey]) edgeGroups[st.facePairKey] = new Set();
+                edgeGroups[st.facePairKey].add(st.edgeKey);
+              }
+            }
+          }
+        }
+      }
+
+      const pairKeys = Object.keys(edgeGroups);
+      for (const pk of pairKeys) {
+        if (Math.random() < cfg.wrapRate) {
+          for (const ek of edgeGroups[pk]) edgeWraps[ek] = true;
+        }
+      }
+      if (Object.keys(edgeWraps).length === 0 && pairKeys.length > 0) {
+        for (const ek of edgeGroups[pairKeys[0]]) edgeWraps[ek] = true;
+      }
+
+      const unassigned = new Set();
+      const allCells = [];
+      for (const f of faces) {
+        for (let u = 0; u < f.cols; u++) {
+          for (let v = 0; v < f.rows; v++) {
+            unassigned.add(`${f.id}_${u}_${v}`);
+            allCells.push({ faceId: f.id, u, v, key: `${f.id}_${u}_${v}` });
+          }
+        }
+      }
+      allCells.sort(() => Math.random() - 0.5);
+
+      const rawBodies = [];
+      for (const sc of allCells) {
+        if (!unassigned.has(sc.key)) continue;
+        unassigned.delete(sc.key);
+
+        const bodyCells = [{ faceId: sc.faceId, u: sc.u, v: sc.v }];
+        const axisDir = Math.floor(Math.random() * 4);
+        const wantLen = Math.random() < cfg.longRate ? (Math.random() < 0.4 ? 3 : 2) : 1;
+
+        let curU = sc.u, curV = sc.v;
+        const f = faces[sc.faceId];
+        for (let s = 1; s < wantLen; s++) {
+          const d = DIRS[axisDir];
+          const nu = curU + d.du, nv = curV + d.dv;
+          if (nu >= 0 && nu < f.cols && nv >= 0 && nv < f.rows) {
+            const nk = `${sc.faceId}_${nu}_${nv}`;
+            if (unassigned.has(nk)) {
+              unassigned.delete(nk);
+              bodyCells.push({ faceId: sc.faceId, u: nu, v: nv });
+              curU = nu; curV = nv;
+            } else break;
+          } else break;
+        }
+        rawBodies.push({ cells: bodyCells, axisDir });
+      }
+
+      const remainingPool = rawBodies.map((b, idx) => ({ poolIdx: idx, cells: b.cells, axisDir: b.axisDir }));
+      const stillOnCubeMap = new Map();
+      for (const item of remainingPool) {
+        for (const c of item.cells) stillOnCubeMap.set(`${c.faceId}_${c.u}_${c.v}`, item.poolIdx);
+      }
+
+      const peeledStepMap = new Map();
+      const solvedSeq = [];
+      let stepCounter = 0;
+
+      while (remainingPool.length > 0) {
+        let bestCand = null;
+        let bestScore = -1e9;
+
+        for (let i = 0; i < remainingPool.length; i++) {
+          const item = remainingPool[i];
+          const configs = getValidOrientationsForBody(item);
+
+          for (const c of configs) {
+            const tr = traceArrowEscapePath({ id: item.poolIdx, cells: c.orderedCells, headDir: c.headDir }, stillOnCubeMap);
+            if (tr.canEscape) {
+              let depCount = 0, latestHit = -1;
+              for (const st of tr.pathSteps) {
+                const ck = `${st.faceId}_${st.u}_${st.v}`;
+                if (peeledStepMap.has(ck)) {
+                  depCount++;
+                  const sIdx = peeledStepMap.get(ck);
+                  if (sIdx > latestHit) latestHit = sIdx;
+                }
+              }
+
+              let score = 0;
+              if (stepCounter === 0) {
+                score = tr.wrapsUsed * 40 + Math.random() * 10;
+              } else if (depCount === 0) {
+                score = -5000 + tr.wrapsUsed * 20;
+              } else {
+                score = 2000 + (latestHit === stepCounter - 1 ? 800 : latestHit * 15) + depCount * 120 + tr.wrapsUsed * 180;
+              }
+
+              if (score > bestScore) {
+                bestScore = score;
+                bestCand = { poolArrayIdx: i, orderedCells: c.orderedCells, headDir: c.headDir };
+              }
+            }
+          }
+        }
+
+        if (!bestCand) {
+          const fb = remainingPool[0];
+          const c = getValidOrientationsForBody(fb)[0];
+          const head = c.orderedCells[0];
+          const st1 = stepOnCubeSurface(head.faceId, head.u, head.v, c.headDir);
+          if (st1.wrapped && st1.edgeKey) delete edgeWraps[st1.edgeKey];
+          bestCand = { poolArrayIdx: 0, orderedCells: c.orderedCells, headDir: c.headDir };
+        }
+
+        const chosen = remainingPool.splice(bestCand.poolArrayIdx, 1)[0];
+        for (const c of chosen.cells) {
+          stillOnCubeMap.delete(`${c.faceId}_${c.u}_${c.v}`);
+          peeledStepMap.set(`${c.faceId}_${c.u}_${c.v}`, stepCounter);
+        }
+
+        solvedSeq.push({ id: stepCounter + 1, solveOrder: stepCounter, cells: bestCand.orderedCells, trueHeadDir: bestCand.headDir });
+        stepCounter++;
+      }
+
+      totalArrowsInitial = solvedSeq.length;
+      let keyAssigned = false, lockCount = 0;
+
+      arrows = solvedSeq.map((item, idx) => {
+        const isDoubleArrow = idx > 2 && Math.random() < cfg.doubleRate;
+        let initCells = item.cells.map(c => ({ ...c }));
+        let initDir = item.trueHeadDir;
+        if (isDoubleArrow && (idx % 2 === 1)) {
+          initCells.reverse();
+          initDir = oppositeDir(initDir);
+        }
+
+        let isKey = false, lockedByKey = false;
+        if (cfg.lockPairs > 0 && !keyAssigned && idx >= totalArrowsInitial * 0.25 && idx <= totalArrowsInitial * 0.45) {
+          isKey = true; keyAssigned = true;
+        } else if (cfg.lockPairs > 0 && keyAssigned && lockCount < cfg.lockPairs && idx >= totalArrowsInitial * 0.55) {
+          lockedByKey = true; lockCount++;
+        }
+
+        return {
+          id: item.id, solveOrder: item.solveOrder, cells: initCells, headDir: initDir,
+          isDoubleArrow, isKey, lockedByKey, palette: null, removed: false
+        };
+      });
+
+      applyPaletteToArrows();
+      updateHUD();
+      saveAllProgress();
+    }
+
+    function restartCurrentStageFresh() {
+      document.getElementById('resultModal').classList.remove('open');
+      delete savedStageDrafts[currentStageIdx];
+      initStage(currentStageIdx, true);
+      showToast('🔄 Đã tạo lại màn chơi mới từ đầu!');
+    }
+
+    function handleArrowTap(arrow) {
+      if (!arrow || arrow.removed) return;
+
+      if (forceRemoveMode) {
+        forceRemoveMode = false;
+        document.getElementById('btnForce').classList.remove('danger-active');
+        executeArrowRemoval(arrow, []);
+        showToast('⚡ Đã phá hủy mũi tên chỉ định!');
+        return;
+      }
+
+      const occMap = buildOccupiedMap(arrows);
+      const check = canArrowBeRemovedNow(arrow, occMap);
+
+      if (check.canEscape) {
+        executeArrowRemoval(arrow, check.pathSteps);
+      } else {
+        lives = Math.max(0, lives - 1);
+        playSound('blocked');
+
+        const lb = document.getElementById('livesBox');
+        lb.classList.remove('shake'); void lb.offsetWidth; lb.classList.add('shake');
+
+        if (check.blockerArrowId) {
+          blockerArrowId = check.blockerArrowId;
+          blockerFlashTimer = 60;
+        }
+        activeAnimations.push({ type: 'bounce', arrowId: arrow.id, progress: 0 });
+
+        if (check.reason === 'locked') showToast('🔒 Chốt Khóa! Hãy rút mũi tên Chìa Khóa 🔑 trước!');
+        else showToast('⚠️ Đường trượt đang bị mũi tên khác cản! (-1 ❤️)');
+
+        updateHUD();
+        saveAllProgress();
+        if (lives <= 0) setTimeout(() => openResultModal(false), 380);
+      }
+    }
+
+    function executeArrowRemoval(arrow, pathSteps) {
+      undoStack.push({
+        snapshotArrows: arrows.map(a => ({
+          id: a.id, cells: a.cells.map(c => ({ ...c })), headDir: a.headDir, lockedByKey: a.lockedByKey, removed: a.removed
+        })),
+        lives
+      });
+
+      arrow.removed = true;
+      hintedArrowId = null; blockerArrowId = null;
+      playSound('slide');
+
+      if (arrow.isKey) {
+        for (const a of arrows) if (!a.removed && a.lockedByKey) a.lockedByKey = false;
+        showToast('🔑 Đã mở toàn bộ Chốt Khóa trên khối!');
+      }
+
+      const slideTrail = [...arrow.cells.slice().reverse(), ...pathSteps.map(s => ({ faceId: s.faceId, u: s.u, v: s.v }))];
+      activeAnimations.push({
+        type: 'escape', palette: arrow.palette, cellsCount: arrow.cells.length, trail: slideTrail,
+        lastHeadDir: pathSteps.length > 0 ? pathSteps[pathSteps.length - 1].dirIdx : arrow.headDir, progress: 0
+      });
+
+      const headWorld = cellToWorld(arrow.cells[0].faceId, arrow.cells[0].u, arrow.cells[0].v, 0.08);
+      for (let i = 0; i < 10; i++) {
+        particles.push({
+          x: headWorld.x, y: headWorld.y, z: headWorld.z,
+          vx: (Math.random() - 0.5) * 0.14, vy: (Math.random() - 0.5) * 0.14, vz: (Math.random() - 0.5) * 0.14,
+          color: arrow.palette.top, life: 1.0
+        });
+      }
+
+      for (const a of arrows) {
+        if (!a.removed && a.isDoubleArrow) {
+          a.cells.reverse();
+          a.headDir = oppositeDir(a.headDir);
+        }
+      }
+
+      updateHUD();
+      saveAllProgress();
+
+      if (arrows.every(a => a.removed)) {
+        const stId = STAGES[currentStageIdx].id;
+        clearedStageIds.add(stId);
+        stageClearedAt[stId] = Date.now();
+        delete savedStageDrafts[currentStageIdx];
+        saveAllProgress();
+        updateHUD();
+        setTimeout(() => { playSound('win'); openResultModal(true); }, 340);
+      }
+    }
+
+    /*************************************************************************
+     * ĐỒ HỌA 3D SẮC NÉT THÍCH ỨNG THEME SÁNG / TỐI & MŨI TÊN DẢI BĂNG
+     *************************************************************************/
+    function rotatePoint3D(pt) {
+      const cosY = Math.cos(camRotY), sinY = Math.sin(camRotY);
+      const x1 = pt.x * cosY + pt.z * sinY, z1 = -pt.x * sinY + pt.z * cosY, y1 = pt.y;
+      const cosX = Math.cos(camRotX), sinX = Math.sin(camRotX);
+      return { x: x1, y: y1 * cosX - z1 * sinX, z: y1 * sinX + z1 * cosX };
+    }
+
+    let cssWidth = window.innerWidth, cssHeight = window.innerHeight;
+
+    function project3D(pt) {
+      const r = rotatePoint3D(pt);
+      const maxDim = Math.max(boxDims[0], boxDims[1], boxDims[2]);
+      const baseScale = Math.min(cssWidth, cssHeight) * (0.54 / Math.max(3.4, maxDim)) * camScale;
+      const camDist = maxDim * 3.15;
+      const perspective = camDist / Math.max(1.2, camDist - r.z);
+      return {
+        sx: cssWidth / 2 + r.x * baseScale * perspective,
+        sy: cssHeight / 2 - r.y * baseScale * perspective,
+        depth: r.z, scale: baseScale * perspective
+      };
+    }
+
+    let renderedArrowHitPolys = [];
+
+    function renderScene() {
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+      renderedArrowHitPolys = [];
+
+      const sortedFaces = faces.map(f => {
+        const rotCenter = rotatePoint3D(vecScale(f.normal, f.depth));
+        const rotNormal = rotatePoint3D(f.normal);
+        return { face: f, depth: rotCenter.z, normalZ: rotNormal.z, isFrontFacing: rotNormal.z > -0.04 };
+      }).sort((a, b) => a.depth - b.depth);
+
+      for (const fItem of sortedFaces) {
+        if (!fItem.isFrontFacing && !transparentMode) continue;
+        drawCubeFace(fItem.face, fItem.isFrontFacing, fItem.normalZ);
+      }
+
+      drawYellowWrapEdges(sortedFaces);
+
+      const previewId = hoveredArrowId || hintedArrowId;
+      if (previewId && showGridDots) {
+        const targetArr = arrows.find(a => a.id === previewId && !a.removed);
+        if (targetArr) drawEscapeTrajectory3D(targetArr);
+      }
+
+      drawActiveEscapeAnimations();
+      drawParticles();
+    }
+
+    function drawCubeFace(f, isFrontFacing, normalZ) {
+      const c0 = cellToWorld(f.id, -0.5, -0.5, 0);
+      const c1 = cellToWorld(f.id, f.cols - 0.5, -0.5, 0);
+      const c2 = cellToWorld(f.id, f.cols - 0.5, f.rows - 0.5, 0);
+      const c3 = cellToWorld(f.id, -0.5, f.rows - 0.5, 0);
+      const p0 = project3D(c0), p1 = project3D(c1), p2 = project3D(c2), p3 = project3D(c3);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(p0.sx, p0.sy); ctx.lineTo(p1.sx, p1.sy); ctx.lineTo(p2.sx, p2.sy); ctx.lineTo(p3.sx, p3.sy); ctx.closePath();
+
+      const shade = Math.max(0.45, Math.min(1, (normalZ + 0.85) * 0.65));
+      const isDark = currentTheme === 'dark';
+
+      if (transparentMode) {
+        ctx.fillStyle = isDark
+          ? (isFrontFacing ? `rgba(30, 41, 59, ${0.42 * shade})` : 'rgba(15, 23, 42, 0.2)')
+          : (isFrontFacing ? `rgba(241, 245, 249, ${0.55 * shade})` : 'rgba(203, 213, 225, 0.28)');
+      } else {
+        ctx.fillStyle = isDark
+          ? `rgb(${Math.round(22 * shade)}, ${Math.round(32 * shade)}, ${Math.round(50 * shade)})`
+          : `rgb(${Math.round(238 * shade)}, ${Math.round(242 * shade)}, ${Math.round(248 * shade)})`;
+      }
+      ctx.fill();
+
+      ctx.lineWidth = isFrontFacing ? 1.4 : 0.7;
+      ctx.strokeStyle = isDark ? 'rgba(148, 163, 184, 0.24)' : 'rgba(100, 116, 139, 0.32)';
+      ctx.stroke();
+
+      for (let u = 0; u < f.cols; u++) {
+        for (let v = 0; v < f.rows; v++) {
+          if (isFrontFacing) {
+            const tl = project3D(cellToWorld(f.id, u - 0.44, v - 0.44, 0.002));
+            const tr = project3D(cellToWorld(f.id, u + 0.44, v - 0.44, 0.002));
+            const br = project3D(cellToWorld(f.id, u + 0.44, v + 0.44, 0.002));
+            const bl = project3D(cellToWorld(f.id, u - 0.44, v + 0.44, 0.002));
+
+            ctx.beginPath();
+            ctx.moveTo(tl.sx, tl.sy); ctx.lineTo(tr.sx, tr.sy); ctx.lineTo(br.sx, br.sy); ctx.lineTo(bl.sx, bl.sy); ctx.closePath();
+            ctx.fillStyle = isDark ? 'rgba(10, 15, 26, 0.36)' : 'rgba(203, 213, 225, 0.42)';
+            ctx.fill();
+
+            if (showGridDots) {
+              const cp = project3D(cellToWorld(f.id, u, v, 0.003));
+              ctx.beginPath();
+              ctx.arc(cp.sx, cp.sy, Math.max(1.2, cp.scale * 0.042), 0, Math.PI * 2);
+              ctx.fillStyle = isDark ? 'rgba(148, 163, 184, 0.28)' : 'rgba(71, 85, 105, 0.35)';
+              ctx.fill();
+            }
+          }
+        }
+      }
+
+      const faceArrows = arrows.filter(a => !a.removed && a.cells[0].faceId === f.id);
+      for (const arr of faceArrows) drawSculptedArrowOnFace(arr, isFrontFacing);
+
+      ctx.restore();
+    }
+
+    function buildArrowContourUV(arrow, bounceOffset) {
+      const headCell = arrow.cells[0], tailCell = arrow.cells[arrow.cells.length - 1];
+      const d = DIRS[arrow.headDir], perp = { u: -d.dv, v: d.du };
+      const tailCenter = { u: tailCell.u + d.du * bounceOffset, v: tailCell.v + d.dv * bounceOffset };
+      const headCenter = { u: headCell.u + d.du * bounceOffset, v: headCell.v + d.dv * bounceOffset };
+
+      const bodyHalfW = 0.23, wingHalfW = 0.405, neckOffset = 0.02, wingBackOffset = -0.04, tipReach = 0.435;
+      const ptUV = (base, along, across) => ({ u: base.u + d.du * along + perp.u * across, v: base.v + d.dv * along + perp.v * across });
+
+      const contour = [];
+      if (arrow.isDoubleArrow) {
+        contour.push(
+          ptUV(headCenter, tipReach, 0),
+          ptUV(headCenter, wingBackOffset, wingHalfW),
+          ptUV(headCenter, neckOffset, bodyHalfW),
+          ptUV(tailCenter, -neckOffset, bodyHalfW),
+          ptUV(tailCenter, -wingBackOffset, 0.33),
+          ptUV(tailCenter, -0.41, 0),
+          ptUV(tailCenter, -wingBackOffset, -0.33),
+          ptUV(tailCenter, -neckOffset, -bodyHalfW),
+          ptUV(headCenter, neckOffset, -bodyHalfW),
+          ptUV(headCenter, wingBackOffset, -wingHalfW)
+        );
+      } else {
+        contour.push(
+          ptUV(headCenter, tipReach, 0),
+          ptUV(headCenter, wingBackOffset, wingHalfW),
+          ptUV(headCenter, neckOffset, bodyHalfW),
+          ptUV(tailCenter, -0.36, bodyHalfW),
+          ptUV(tailCenter, -0.23, 0),
+          ptUV(tailCenter, -0.36, -bodyHalfW),
+          ptUV(headCenter, neckOffset, -bodyHalfW),
+          ptUV(headCenter, wingBackOffset, -wingHalfW)
+        );
+      }
+      return { contour, headCenter, tailCenter, d, perp };
+    }
+
+    function drawSculptedArrowOnFace(arrow, isFrontFacing) {
+      const faceId = arrow.cells[0].faceId;
+      let bounceOffset = 0;
+      const bounceAnim = activeAnimations.find(a => a.type === 'bounce' && a.arrowId === arrow.id);
+      if (bounceAnim) bounceOffset = Math.sin(bounceAnim.progress * Math.PI) * 0.24;
+
+      const isHovered = hoveredArrowId === arrow.id;
+      const isHinted = hintedArrowId === arrow.id;
+      const isBlocker = blockerArrowId === arrow.id && blockerFlashTimer > 0;
+
+      if (isFrontFacing) {
+        for (const c of arrow.cells) {
+          const hp0 = project3D(cellToWorld(faceId, c.u - 0.45, c.v - 0.45, 0.04));
+          const hp1 = project3D(cellToWorld(faceId, c.u + 0.45, c.v - 0.45, 0.04));
+          const hp2 = project3D(cellToWorld(faceId, c.u + 0.45, c.v + 0.45, 0.04));
+          const hp3 = project3D(cellToWorld(faceId, c.u - 0.45, c.v + 0.45, 0.04));
+          renderedArrowHitPolys.push({
+            arrowId: arrow.id, depth: (hp0.depth + hp1.depth + hp2.depth + hp3.depth) / 4,
+            poly: [{ x: hp0.sx, y: hp0.sy }, { x: hp1.sx, y: hp1.sy }, { x: hp2.sx, y: hp2.sy }, { x: hp3.sx, y: hp3.sy }]
+          });
+        }
+      }
+
+      const geom = buildArrowContourUV(arrow, bounceOffset);
+      const baseLift = isFrontFacing ? 0.013 : 0.003;
+      const topLift = isFrontFacing ? (isHovered || isHinted ? 0.084 : 0.06) : 0.01;
+      const basePts2D = geom.contour.map(uv => project3D(cellToWorld(faceId, uv.u, uv.v, baseLift)));
+      const topPts2D = geom.contour.map(uv => project3D(cellToWorld(faceId, uv.u, uv.v, topLift)));
+
+      if (!isFrontFacing && transparentMode) {
+        ctx.beginPath();
+        topPts2D.forEach((p, idx) => idx === 0 ? ctx.moveTo(p.sx, p.sy) : ctx.lineTo(p.sx, p.sy));
+        ctx.closePath();
+        ctx.fillStyle = currentTheme === 'dark' ? 'rgba(15, 23, 42, 0.65)' : 'rgba(51, 65, 85, 0.45)';
+        ctx.fill();
+        return;
+      }
+
+      const pal = arrow.palette || getActivePaletteList()[0];
+      let colTop = pal.top, colBottom = pal.bottom, colSide = pal.side, colBorder = pal.border;
+      if (isBlocker) { colTop = '#fb923c'; colBottom = '#ea580c'; colSide = '#9a3412'; colBorder = '#ffedd5'; }
+      else if (isHinted) { colTop = '#34d399'; colBottom = '#059669'; colSide = '#064e3b'; colBorder = '#ecfdf5'; }
+      else if (arrow.lockedByKey) { colTop = '#f43f5e'; colBottom = '#be123c'; colSide = '#881337'; colBorder = '#ffe4e6'; }
+      else if (arrow.isKey) { colTop = '#facc15'; colBottom = '#ca8a04'; colSide = '#713f12'; colBorder = '#fef9c3'; }
+
+      // Thành bên 3D
+      ctx.fillStyle = colSide;
+      for (let i = 0; i < topPts2D.length; i++) {
+        const nextI = (i + 1) % topPts2D.length;
+        ctx.beginPath();
+        ctx.moveTo(basePts2D[i].sx, basePts2D[i].sy);
+        ctx.lineTo(basePts2D[nextI].sx, basePts2D[nextI].sy);
+        ctx.lineTo(topPts2D[nextI].sx, topPts2D[nextI].sy);
+        ctx.lineTo(topPts2D[i].sx, topPts2D[i].sy);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Mặt trên mũi tên
+      const tail2D = project3D(cellToWorld(faceId, geom.tailCenter.u, geom.tailCenter.v, topLift));
+      const head2D = project3D(cellToWorld(faceId, geom.headCenter.u + geom.d.du * 0.4, geom.headCenter.v + geom.d.dv * 0.4, topLift));
+      const grad = ctx.createLinearGradient(tail2D.sx, tail2D.sy, head2D.sx, head2D.sy);
+      grad.addColorStop(0, colBottom);
+      grad.addColorStop(0.65, colTop);
+      grad.addColorStop(1, '#ffffff');
+
+      ctx.beginPath();
+      topPts2D.forEach((p, idx) => idx === 0 ? ctx.moveTo(p.sx, p.sy) : ctx.lineTo(p.sx, p.sy));
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.lineWidth = (isHovered || isHinted || isBlocker) ? 2.2 : 1.25;
+      ctx.strokeStyle = (isHovered || isHinted) ? '#ffffff' : colBorder;
+      ctx.stroke();
+
+      // Vạch Chevron dọc thân
+      const chevronLift = topLift + 0.004;
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = Math.max(1.7, head2D.scale * 0.072);
+
+      for (let idx = 0; idx < arrow.cells.length; idx++) {
+        const c = arrow.cells[idx];
+        const cu = c.u + geom.d.du * bounceOffset, cv = c.v + geom.d.dv * bounceOffset;
+        const cTip = project3D(cellToWorld(faceId, cu + geom.d.du * 0.13, cv + geom.d.dv * 0.13, chevronLift));
+        const cLeft = project3D(cellToWorld(faceId, cu - geom.d.du * 0.07 + geom.perp.u * 0.11, cv - geom.d.dv * 0.07 + geom.perp.v * 0.11, chevronLift));
+        const cRight = project3D(cellToWorld(faceId, cu - geom.d.du * 0.07 - geom.perp.u * 0.11, cv - geom.d.dv * 0.07 - geom.perp.v * 0.11, chevronLift));
+
+        ctx.beginPath();
+        ctx.moveTo(cLeft.sx, cLeft.sy);
+        ctx.lineTo(cTip.sx, cTip.sy);
+        ctx.lineTo(cRight.sx, cRight.sy);
+        ctx.stroke();
+      }
+
+      if (arrow.isKey || arrow.lockedByKey) {
+        const midU = (geom.headCenter.u + geom.tailCenter.u) / 2;
+        const midV = (geom.headCenter.v + geom.tailCenter.v) / 2;
+        const badgePt = project3D(cellToWorld(faceId, midU, midV, chevronLift + 0.01));
+        ctx.font = `bold ${Math.max(11, Math.round(badgePt.scale * 0.33))}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(arrow.isKey ? '🔑' : '🔒', badgePt.sx, badgePt.sy);
+      }
+    }
+
+    function drawYellowWrapEdges(sortedFaces) {
+      const visibleFaceIds = new Set(sortedFaces.filter(item => item.isFrontFacing || transparentMode).map(item => item.face.id));
+      ctx.save();
+      const drawnKeys = new Set();
+
+      for (const f of faces) {
+        if (!visibleFaceIds.has(f.id)) continue;
+        for (let u = 0; u < f.cols; u++) {
+          for (let v = 0; v < f.rows; v++) {
+            for (let d = 0; d < 4; d++) {
+              const st = stepOnCubeSurface(f.id, u, v, d);
+              if (st.wrapped && edgeWraps[st.edgeKey] && !drawnKeys.has(st.edgeKey)) {
+                drawnKeys.add(st.edgeKey);
+                const dv = DIRS[d], perpU = -dv.dv, perpV = dv.du;
+                const e1 = cellToWorld(f.id, u + dv.du * 0.5 - perpU * 0.4, v + dv.dv * 0.5 - perpV * 0.4, 0.022);
+                const e2 = cellToWorld(f.id, u + dv.du * 0.5 + perpU * 0.4, v + dv.dv * 0.5 + perpV * 0.4, 0.022);
+                const p1 = project3D(e1), p2 = project3D(e2);
+
+                ctx.beginPath(); ctx.moveTo(p1.sx, p1.sy); ctx.lineTo(p2.sx, p2.sy);
+                ctx.lineWidth = Math.max(4.2, p1.scale * 0.14); ctx.lineCap = 'round'; ctx.strokeStyle = '#d97706'; ctx.stroke();
+
+                ctx.beginPath(); ctx.moveTo(p1.sx, p1.sy); ctx.lineTo(p2.sx, p2.sy);
+                ctx.lineWidth = Math.max(1.8, p1.scale * 0.06); ctx.strokeStyle = '#fde68a'; ctx.stroke();
+              }
+            }
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    function drawEscapeTrajectory3D(arrow) {
+      const occMap = buildOccupiedMap(arrows);
+      const check = canArrowBeRemovedNow(arrow, occMap);
+      const head = arrow.cells[0];
+      const pts3D = [cellToWorld(head.faceId, head.u, head.v, 0.085)];
+      for (const st of check.pathSteps) pts3D.push(cellToWorld(st.faceId, st.u, st.v, 0.085));
+
+      if (pts3D.length < 2) return;
+      ctx.save();
+      ctx.beginPath();
+      const first2D = project3D(pts3D[0]); ctx.moveTo(first2D.sx, first2D.sy);
+      for (let i = 1; i < pts3D.length; i++) { const p = project3D(pts3D[i]); ctx.lineTo(p.sx, p.sy); }
+
+      ctx.setLineDash([5, 4]);
+      ctx.lineDashOffset = -pulseTick * 0.5;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = check.canEscape ? '#10b981' : '#f43f5e';
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    function drawActiveEscapeAnimations() {
+      for (const anim of activeAnimations) {
+        if (anim.type !== 'escape') continue;
+        const floatIdx = anim.progress * (anim.trail.length + 1.5);
+        const segPts2D = [];
+        for (let k = 0; k < anim.cellsCount; k++) {
+          const idx = Math.floor(floatIdx - k * 0.8);
+          if (idx >= 0 && idx < anim.trail.length) {
+            const c = anim.trail[idx];
+            segPts2D.push(project3D(cellToWorld(c.faceId, c.u, c.v, 0.075)));
+          }
+        }
+        if (segPts2D.length >= 2) {
+          ctx.save(); ctx.beginPath();
+          ctx.moveTo(segPts2D[0].sx, segPts2D[0].sy);
+          for (let i = 1; i < segPts2D.length; i++) ctx.lineTo(segPts2D[i].sx, segPts2D[i].sy);
+          ctx.lineCap = 'round'; ctx.lineWidth = Math.max(7, segPts2D[0].scale * 0.38);
+          ctx.strokeStyle = anim.palette ? anim.palette.top : '#38bdf8';
+          ctx.stroke(); ctx.restore();
+        }
+      }
+    }
+
+    function drawParticles() {
+      for (const p of particles) {
+        const pt = project3D(p);
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.beginPath(); ctx.arc(pt.sx, pt.sy, Math.max(2, pt.scale * 0.07), 0, Math.PI * 2);
+        ctx.fillStyle = p.color; ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function animateLoop() {
+      pulseTick++;
+      for (let i = activeAnimations.length - 1; i >= 0; i--) {
+        activeAnimations[i].progress += 0.085;
+        if (activeAnimations[i].progress >= 1) activeAnimations.splice(i, 1);
+      }
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].x += particles[i].vx; particles[i].y += particles[i].vy; particles[i].z += particles[i].vz;
+        particles[i].life -= 0.045;
+        if (particles[i].life <= 0) particles.splice(i, 1);
+      }
+      if (blockerFlashTimer > 0) { blockerFlashTimer--; if (blockerFlashTimer === 0) blockerArrowId = null; }
+
+      renderScene();
+      requestAnimationFrame(animateLoop);
+    }
+
+    // ĐIỀU KHIỂN CẢM ỨNG ĐA ĐIỂM
+    const activePointers = new Map();
+    let isDragging = false, dragMoved = false, pointerDownPos = { x: 0, y: 0 }, lastPinchDist = null;
+
+    canvas.addEventListener('pointerdown', (e) => {
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (activePointers.size === 1) {
+        isDragging = true; dragMoved = false; pointerDownPos = { x: e.clientX, y: e.clientY };
+        const picked = pickArrowAtScreenPos(e.clientX, e.clientY);
+        hoveredArrowId = picked ? picked.id : null;
+      } else if (activePointers.size === 2) {
+        dragMoved = true;
+        const pts = [...activePointers.values()];
+        lastPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      }
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!activePointers.has(e.pointerId)) {
+        const picked = pickArrowAtScreenPos(e.clientX, e.clientY);
+        hoveredArrowId = picked ? picked.id : null;
+        return;
+      }
+      const prev = activePointers.get(e.pointerId);
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (activePointers.size === 2) {
+        const pts = [...activePointers.values()];
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        if (lastPinchDist) camScale = Math.max(0.65, Math.min(1.65, camScale + (dist - lastPinchDist) * 0.0035));
+        lastPinchDist = dist;
+        return;
+      }
+
+      if (activePointers.size === 1 && isDragging) {
+        const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+        if (Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) > 7) {
+          dragMoved = true; hoveredArrowId = null;
+        }
+        if (dragMoved) {
+          camRotY += dx * 0.009;
+          camRotX = Math.max(-1.42, Math.min(1.42, camRotX + dy * 0.009));
+        }
+      }
+    });
+
+    function handlePointerEnd(e) {
+      activePointers.delete(e.pointerId);
+      if (activePointers.size < 2) lastPinchDist = null;
+      if (activePointers.size === 0 && isDragging) {
+        isDragging = false;
+        if (!dragMoved) {
+          const picked = pickArrowAtScreenPos(e.clientX, e.clientY);
+          if (picked) handleArrowTap(picked);
+        } else {
+          saveAllProgress();
+        }
+      }
+    }
+    window.addEventListener('pointerup', handlePointerEnd);
+    window.addEventListener('pointercancel', handlePointerEnd);
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      camScale = Math.max(0.65, Math.min(1.65, camScale - e.deltaY * 0.0008));
+    }, { passive: false });
+
+    function pointInPoly(px, py, poly) {
+      let inside = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
+        if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / ((yj - yi) || 1e-6) + xi)) inside = !inside;
+      }
+      return inside;
+    }
+
+    function pickArrowAtScreenPos(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const x = clientX - rect.left, y = clientY - rect.top;
+      const hits = renderedArrowHitPolys.filter(item => pointInPoly(x, y, item.poly));
+      if (hits.length === 0) return null;
+      hits.sort((a, b) => b.depth - a.depth);
+      return arrows.find(arr => arr.id === hits[0].arrowId) || null;
+    }
+
+    // CẬP NHẬT GIAO DIỆN HUD & LỊCH SỬ
+    function updateHUD() {
+      const st = STAGES[currentStageIdx];
+      document.getElementById('stageTitleTxt').textContent = `Màn ${st.id} / 100 • Khối ${boxDims.join('×')}`;
+
+      const activeArr = arrows.filter(a => !a.removed);
+      const total = totalArrowsInitial || arrows.length || 1;
+      const clearedCount = total - activeArr.length;
+      const pct = Math.round((clearedCount / total) * 100);
+
+      document.getElementById('remainVal').textContent = `${activeArr.length}/${total}`;
+      document.getElementById('stageProgressFill').style.width = `${pct}%`;
+      document.getElementById('saveStateLabel').textContent = clearedCount > 0
+        ? `Đang thực hiện (${pct}% đã gỡ • Tự động lưu)`
+        : `Đã lưu màn hiện tại • Đã qua ${clearedStageIds.size}/100 màn`;
+
+      document.getElementById('clearedBadge').textContent = `${clearedStageIds.size}/100`;
+
+      const occMap = buildOccupiedMap(arrows);
+      let freeCount = 0;
+      for (const a of activeArr) { if (canArrowBeRemovedNow(a, occMap).canEscape) freeCount++; }
+      document.getElementById('freeVal').textContent = freeCount;
+
+      let hearts = '';
+      for (let i = 0; i < maxLives; i++) hearts += i < lives ? '❤️' : '🖤';
+      document.getElementById('livesVal').textContent = hearts;
+      document.getElementById('wrapVal').textContent = Object.keys(edgeWraps).length;
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toastBanner');
+      el.textContent = msg; el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    function toggleTransparentMode() {
+      transparentMode = !transparentMode;
+      document.getElementById('btnGhost').classList.toggle('active-mode', transparentMode);
+      showToast(transparentMode ? '👁️ Đã bật Xuyên Thấu' : '👁️ Đã tắt Xuyên Thấu');
+    }
+
+    function toggleGridDots() {
+      showGridDots = !showGridDots;
+      document.getElementById('btnDots').classList.toggle('active-mode', showGridDots);
+      document.getElementById('txtDots').textContent = `Tia: ${showGridDots ? 'BẬT' : 'TẮT'}`;
+    }
+
+    function useHint() {
+      const occMap = buildOccupiedMap(arrows);
+      const candidates = arrows.filter(a => !a.removed && canArrowBeRemovedNow(a, occMap).canEscape);
+      if (candidates.length === 0) {
+        const first = arrows.find(a => !a.removed);
+        if (first) { hintedArrowId = first.id; focusCameraOnFace(first.cells[0].faceId); }
+        return;
+      }
+      candidates.sort((a, b) => a.solveOrder - b.solveOrder);
+      hintedArrowId = candidates[0].id;
+      focusCameraOnFace(candidates[0].cells[0].faceId);
+      showToast('💡 Đã tô sáng gợi ý nước đi!');
+    }
+
+    function focusCameraOnFace(faceId) {
+      const angles = {
+        0: { x: -0.25, y: 0.25 }, 1: { x: -0.25, y: Math.PI + 0.25 },
+        2: { x: -0.25, y: -Math.PI / 2 + 0.25 }, 3: { x: -0.25, y: Math.PI / 2 + 0.25 },
+        4: { x: -1.15, y: 0.35 }, 5: { x: 1.15, y: 0.35 }
+      };
+      const t = angles[faceId] || { x: -0.46, y: 0.66 };
+      camRotX = t.x; camRotY = t.y;
+    }
+
+    function toggleRemoveTool() {
+      forceRemoveMode = !forceRemoveMode;
+      document.getElementById('btnForce').classList.toggle('danger-active', forceRemoveMode);
+      if (forceRemoveMode) showToast('⚡ Chạm vào mũi tên bất kỳ để gỡ ngay!');
+    }
+
+    function undoMove() {
+      if (undoStack.length === 0) {
+        showToast('Chưa có nước đi nào để hoàn tác!');
+        return;
+      }
+      const last = undoStack.pop();
+      for (const snap of last.snapshotArrows) {
+        const arr = arrows.find(a => a.id === snap.id);
+        if (arr) {
+          arr.cells = snap.cells.map(c => ({ ...c }));
+          arr.headDir = snap.headDir;
+          arr.lockedByKey = snap.lockedByKey;
+          arr.removed = snap.removed;
+        }
+      }
+      lives = last.lives;
+      hintedArrowId = null; blockerArrowId = null;
+      updateHUD();
+      saveAllProgress();
+      showToast('↩️ Đã hoàn tác bước đi!');
+    }
+
+    function openLevelModal() {
+      const activeArr = arrows.filter(a => !a.removed);
+      const total = totalArrowsInitial || arrows.length || 1;
+      const pct = Math.round(((total - activeArr.length) / total) * 100);
+
+      document.getElementById('sumCleared').textContent = `${clearedStageIds.size}/100`;
+      document.getElementById('sumCurrent').textContent = `Màn ${STAGES[currentStageIdx].id}`;
+      document.getElementById('sumDrafts').textContent = `${pct}%`;
+
+      renderLevelChapter(Math.floor(currentStageIdx / 25));
+      document.getElementById('levelModal').classList.add('open');
+    }
+
+    function closeLevelModal() {
+      document.getElementById('levelModal').classList.remove('open');
+    }
+
+    function renderLevelChapter(chapIdx) {
+      for (let i = 0; i < 4; i++) document.getElementById(`chap-${i}`).classList.toggle('active', i === chapIdx);
+      const container = document.getElementById('levelListContainer');
+      container.innerHTML = '';
+      const start = chapIdx * 25, end = Math.min(STAGES.length, start + 25);
+
+      for (let i = start; i < end; i++) {
+        const st = STAGES[i];
+        const isCurrent = i === currentStageIdx;
+        const isCleared = clearedStageIds.has(st.id);
+        const draft = savedStageDrafts[i];
+        let statusTag = 'Chưa giải';
+
+        if (isCleared) {
+          statusTag = '✓ Đã qua màn';
+        } else if (draft && Array.isArray(draft.arrows)) {
+          const rem = draft.arrows.filter(a => !a.removed).length;
+          const tot = draft.totalArrowsInitial || draft.arrows.length || 1;
+          const p = Math.round(((tot - rem) / tot) * 100);
+          if (p > 0) statusTag = `⏳ Đang giải (${p}%)`;
+        }
+
+        const btn = document.createElement('button');
+        btn.className = `level-item ${isCurrent ? 'current' : ''} ${isCleared ? 'cleared' : ''}`;
+        btn.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11px; font-weight:900;">Màn ${st.id}</span>
+            <span style="font-size:9px; font-weight:800; color:var(--sky);">${st.dims.join('×')}</span>
+          </div>
+          <div style="font-size:9.5px; font-weight:700; color:${isCleared ? 'var(--emerald)' : 'var(--text-muted)'}; margin-top:2px;">
+            ${statusTag}
+          </div>
+        `;
+        btn.onclick = () => { closeLevelModal(); initStage(i, false); };
+        container.appendChild(btn);
+      }
+    }
+
+    let lastWonState = true;
+    function openResultModal(won) {
+      lastWonState = won;
+      document.getElementById('resEmoji').textContent = won ? '🏆' : '💔';
+      document.getElementById('resTitle').textContent = won ? `Hoàn Thành Màn ${STAGES[currentStageIdx].id}!` : 'Hết 3 Tim Chính Xác!';
+      document.getElementById('resDesc').textContent = won
+        ? `Đã lưu vào lịch sử (${clearedStageIds.size}/100 màn hoàn thành).`
+        : 'Bạn có muốn hồi sinh 3 Tim miễn phí để tiếp tục màn đang giải dở không?';
+      document.getElementById('btnNextAction').textContent = won ? 'Màn Tiếp Theo →' : '❤️ Hồi Sinh 3 Tim (FREE)';
+      document.getElementById('resultModal').classList.add('open');
+    }
+
+    function nextOrRevive() {
+      document.getElementById('resultModal').classList.remove('open');
+      if (lastWonState) {
+        initStage((currentStageIdx + 1) % STAGES.length, false);
+      } else {
+        lives = 3;
+        updateHUD();
+        saveAllProgress();
+        showToast('❤️ Đã hồi sinh 3 Tim — Tiếp tục giải màn hiện tại!');
+      }
+    }
+
+    function handleResize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      cssWidth = window.innerWidth;
+      cssHeight = window.innerHeight;
+      canvas.width = Math.round(cssWidth * dpr);
+      canvas.height = Math.round(cssHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    window.addEventListener('resize', handleResize);
+    loadSavedData();
+    applyThemeUI();
+    handleResize();
+    initStage(currentStageIdx, false);
+    requestAnimationFrame(animateLoop);
+  </script>
+</body>
+
+</html>
